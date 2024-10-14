@@ -2,6 +2,8 @@ import streamlit as st
 import pandas as pd
 import plotly.graph_objs as go
 
+st.set_page_config(layout="wide")
+
 # Title of the app
 st.title("Blood Glucose Level Tracker")
 
