@@ -10,7 +10,7 @@ st.title("Blood Glucose Level Tracker")
 # Input fields for date, time, and blood glucose level
 col1, col2, col3, col4, col5 = st.columns(5)
 with col1:
-    date = st.date_input("Select Date")
+    date = st.date_input("Select Date", max_value=pd.to_datetime('today').date())
 with col2:
     time = st.time_input("Select Time")
 with col3:
