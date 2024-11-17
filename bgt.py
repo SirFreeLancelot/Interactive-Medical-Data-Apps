@@ -4,51 +4,50 @@ import plotly.graph_objs as go
 
 st.set_page_config(layout="wide")
 
-# Title of the app
-st.title("Blood Glucose Level Tracker")
-
-# Input fields for date, time, and blood glucose level
-col1, col2, col3, col4, col5 = st.columns(5)
-with col1:
+# Input fields for date, time, and blood glucose level in the sidebar
+with st.sidebar:
+    # Title of the app
+    st.title("Blood Glucose Level Tracker")
     date = st.date_input("Select Date", max_value=pd.to_datetime('today').date())
-with col2:
     time = st.time_input("Select Time")
-with col3:
     glucose = st.number_input("Enter Blood Glucose Level", min_value=0, max_value=500)
 
 # Store the data in a DataFrame (simulating saving it over time)
 if 'data' not in st.session_state:
     st.session_state.data = pd.DataFrame(columns=['DateTime', 'Glucose Level'])
 
-with col4:
-    # Center the button horizontally and vertically
-    st.markdown("<div style='text-align: center; display: flex; align-items: center; justify-content: center'>", unsafe_allow_html=True)
-    # Add data to the session state DataFrame
-    if st.button('Submit', type='primary'):
-        # Combine date and time
-        datetime = pd.to_datetime(f"{date} {time}")
-        # Check if the data already exists
-        if datetime in st.session_state.data['DateTime'].values:
-            # Update the existing data
-            st.session_state.data.loc[st.session_state.data['DateTime'] == datetime, 'Glucose Level'] = glucose
-        else:
-            # Append the new data
-            new_data = pd.DataFrame({'DateTime': [datetime], 'Glucose Level': [glucose]})
-            st.session_state.data = pd.concat([st.session_state.data, new_data], ignore_index=True)
-        # Sort the data by time
-        st.session_state.data = st.session_state.data.sort_values(by='DateTime')
-    st.markdown("</div>", unsafe_allow_html=True)
+with st.sidebar:
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        # Add data to the session state DataFrame
+        if st.button(':green[Submit]', type='secondary'):
+            # Combine date and time
+            datetime = pd.to_datetime(f"{date} {time}")
+            # Check if the data already exists
+            if datetime in st.session_state.data['DateTime'].values:
+                # Update the existing data
+                st.session_state.data.loc[st.session_state.data['DateTime'] == datetime, 'Glucose Level'] = glucose
+            else:
+                # Append the new data
+                new_data = pd.DataFrame({'DateTime': [datetime], 'Glucose Level': [glucose]})
+                st.session_state.data = pd.concat([st.session_state.data, new_data], ignore_index=True)
+            # Sort the data by time
+            st.session_state.data = st.session_state.data.sort_values(by='DateTime')
 
-with col5:
-    # Center the button horizontally and vertically
-    st.markdown("<div style='text-align: center; display: flex; align-items: center; justify-content: center'>", unsafe_allow_html=True)
-    # Button to delete the data for the selected date and time
-    if st.button('Delete', type='secondary'):
-        datetime = pd.to_datetime(f"{date} {time}")
-        # Check if the data already exists
-        if datetime in st.session_state.data['DateTime'].values:
-            # Delete the existing data
+    with col2:
+        # Button to delete the data for the selected date and time
+        if st.button(':red[Delete]', type='secondary'):
+            datetime = pd.to_datetime(f"{date} {time}")
             st.session_state.data = st.session_state.data[st.session_state.data['DateTime'] != datetime]
+
+    with col3:
+        # Button to clear all data
+        if st.button(':red[Clear]', type='secondary'):
+            st.session_state.data = pd.DataFrame(columns=['DateTime', 'Glucose Level'])
+        
+    # Option to display the DataFrame
+    with st.expander("Data Table"):
+        st.write(st.session_state.data)
 
 # Plot the data if available
 if not st.session_state.data.empty:
@@ -94,9 +93,5 @@ if not st.session_state.data.empty:
         height=600
     )
 
-    # Display the figure in Streamlit
     st.plotly_chart(fig)
 
-# Option to display the DataFrame (optional)
-if st.checkbox("Show Data Table"):
-    st.write(st.session_state.data)

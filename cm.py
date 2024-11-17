@@ -76,38 +76,12 @@ def calculate_bmr(age, sex, height, weight, activity_level):
 
 
 # Layout: Three columns
-left_col, mid_col, right_col = st.columns([3, 3, 2])
+left_col, mid_col, right_col = st.columns([3, 4, 2])
 
 # Left column
 with left_col:
-    # st.header("Buffet")
-
-    with st.expander("Profile"):
-
-        col_1, col_2, col_3 = st.columns([1, 1, 1])
-
-        with col_1:
-            age = st.number_input("Age", min_value=1, max_value=100, value=18)
-            st.session_state.age = age
-            weight = st.number_input("Weight (kg)", min_value=30, max_value=200, value=70)
-            st.session_state.weight = weight
-        with col_2:
-            sex = st.selectbox("Sex", ["Male", "Female"])
-            st.session_state.sex = sex
-            activity_level = st.selectbox("Activity Level", ["Sedentary", "Lightly Active", "Moderately Active", "Very Active", "Extra Active"], index=2)
-            st.session_state.activity_level = activity_level
-        with col_3:
-            height = st.number_input("Height (cm)", min_value=100, max_value=300, value=170)
-            st.session_state.height = height
-            bmr = calculate_bmr(st.session_state.age, st.session_state.sex, st.session_state.height, st.session_state.weight, st.session_state.activity_level)                
-            st.text_input("RDA (kcal)", value=bmr, disabled=True)
-            st.session_state.rda = bmr
-            
-        
-    
-
-    with st.expander("Full Menu", expanded=st.session_state.stance == 'standing'):
-        st.write("Reference: https://www.ijfcm.org/html-article/18750")
+    st.header("All-You-Can-Eat Buffet") 
+    with st.expander("Buffet Menu", expanded=(st.session_state.eaten_meals.empty and st.session_state.stance == "standing")):
         st.write(st.session_state.calorie_table)
     
     if st.session_state.stance == 'collecting':
@@ -118,11 +92,11 @@ with left_col:
 
         add_button, remove_button, clear = st.columns(3)
         with add_button:
-            add = st.button("Add to tray")
+            add = st.button(":green[Add to tray]")
         with remove_button:
-            remove = st.button("Remove from tray")
+            remove = st.button(":red[Put back]")
         with clear:
-            clear_tray = st.button("Clear Tray")
+            clear_tray = st.button(":red[Clear Tray]")
         
         if clear_tray: 
             st.session_state.tray = pd.DataFrame(columns=['Food', 'Servings', 'Calories'])
@@ -143,21 +117,44 @@ with left_col:
             tray_calories += row["Calories"] * row["Servings"]
         st.session_state.tray_calories = tray_calories
 
-        with st.expander("Tray"):
+        with st.expander("Tray", expanded=st.session_state.tray.empty == False):
             st.write(f"Tray Calories: {tray_calories} kcal")
             st.write(st.session_state.tray)
 
     if not st.session_state.eaten_meals.empty:
-        with st.expander("Eaten Meals"):
+        with st.expander("Eaten Meals", expanded=True):
             st.write(st.session_state.eaten_meals)
+    
 
 # Middle column: 
 with mid_col:
-    st.header("All-Day All-You-Can-Eat Buffet")
+    with st.expander("Profile"):
 
+        col_1, col_2, col_3 = st.columns([1, 1, 1])
+
+        with col_1:
+            age = st.number_input("Age", min_value=1, max_value=100, value=18)
+            st.session_state.age = age
+            weight = st.number_input("Weight (kg)", min_value=30, max_value=200, value=70)
+            st.session_state.weight = weight
+        with col_2:
+            sex = st.selectbox("Sex", ["Male", "Female"])
+            st.session_state.sex = sex
+            activity_level = st.selectbox("Activity Level", ["Sedentary", "Lightly Active", "Moderately Active", "Very Active", "Extra Active"], index=2)
+            st.session_state.activity_level = activity_level
+        with col_3:
+            height = st.number_input("Height (cm)", min_value=100, max_value=300, value=170)
+            st.session_state.height = height
+            bmr = calculate_bmr(st.session_state.age, st.session_state.sex, st.session_state.height, st.session_state.weight, st.session_state.activity_level)                
+            st.text_input("RDA (kcal)", value=bmr, disabled=True)
+            st.session_state.rda = bmr
+        
+        st.write("RDA is calculated according to ICMR recommendations for pediatric age groups, and using Mifflin-St Jeor Equation for adults.")
+        st.write("References: https://www.ijfcm.org/html-article/18750, https://reference.medscape.com/calculator/846/mifflin-st-jeor-equation")
+    
     if st.session_state.stance == 'standing':
         st.image("garfield.jpg", use_column_width=True)
-        collect = st.button("Grab a tray and start making a meal")
+        collect = st.button(":green[The food looks delicious! Grab a tray and start making a meal!]")
         if collect:
             st.session_state.stance = 'collecting'
             st.rerun()
@@ -165,7 +162,7 @@ with mid_col:
     if st.session_state.stance == 'collecting':
         st.image("garfield-buffet.gif", use_column_width=True)
         if not st.session_state.tray.empty:
-            eat = st.button("Sit and enjoy the meal")
+            eat = st.button(":green[That should do for now. Sit down and enjoy the meal!]")
             if eat:
                 st.session_state.stance = 'eating'
                 st.rerun()
@@ -179,7 +176,6 @@ with mid_col:
         st.session_state.tray = pd.DataFrame(columns=["Food", "Servings", "Calories"])
         st.session_state.tray_calories = 0
         st.rerun()
-
 
 # Right column: Vertical calorie meter using Plotly
 with right_col:
@@ -225,6 +221,7 @@ with right_col:
             line=dict(color='white', width=2)  # Black outline around the bar
         ),
         orientation='v',  # Vertical bar
+        name='Calorie Meter',
         width=0.5  # Make the bar thinner to match the background
     )
 
@@ -242,7 +239,7 @@ with right_col:
             showticklabels=False,
             range=[0, 1],  # Keep the x-axis to range from 0 to 1 (for the bar)
         ),
-        height=500,  # Adjust height of the bar
+        height=550,  # Adjust height of the bar
         width=200,   # Adjust width of the chart
         margin=dict(l=40, r=40, t=40, b=40),
         plot_bgcolor='black',  # White background for better contrast
@@ -258,8 +255,9 @@ with right_col:
     fig.add_trace(go.Scatter(
         x=[0.5],  # Position text in the center of the bar
         y=[current_calories],
-        text=[f"{current_calories} kcal"], 
-        mode='text', 
+        text=[f"{int(current_calories)} kcal"], 
+        mode='text',
+        name='Calorie Meter', 
         textposition='top center',
         showlegend=False
     ))
@@ -270,9 +268,9 @@ with right_col:
     # Display exact calorie count
     col3, col4 = st.columns([2, 1])
     with col3:
-        st.write(f"Total Calories: {current_calories} kcal")
+        st.write(f"Total Calories: {int(current_calories)} kcal")
     with col4:
-        reset = st.button("Reset")
+        reset = st.button(":red[Reset]")
         if reset:
             st.session_state.total_calories = 0
             st.session_state.eaten_meals = pd.DataFrame(columns=['Food', 'Servings', 'Calories'])
