@@ -2,3 +2,6 @@
 /.vscode
 /.streamlit/secrets.toml
 .gitignore
+cm copy.py
+test.py
+Food Calorie Database.xlsx

@@ -18,6 +18,61 @@ if 'eaten_meals' not in st.session_state:
     st.session_state.eaten_meals = pd.DataFrame(columns=['Food', 'Servings', 'Calories'])
 if 'stance' not in st.session_state:
     st.session_state.stance = "standing"
+if 'age' not in st.session_state:
+    st.session_state.age = 18
+if 'sex' not in st.session_state:
+    st.session_state.sex = "Male"
+if 'height' not in st.session_state:
+    st.session_state.height = 170
+if 'weight' not in st.session_state:
+    st.session_state.weight = 70
+if 'activity_level' not in st.session_state:
+    st.session_state.activity_level = "Moderately Active"
+if 'rda' not in st.session_state:
+    st.session_state.rda = 0
+
+
+activity_level_map = {
+                "Sedentary": 1.2,
+                "Lightly Active": 1.375,
+                "Moderately Active": 1.55,
+                "Very Active": 1.725,
+                "Extra Active": 1.9
+            }
+
+
+def calculate_bmr(age, sex, height, weight, activity_level):
+    if age < 1:
+        return None
+    elif 1 <= age <= 3:
+        return 1010  # Children 1-3 years
+    elif 4 <= age <= 6:
+        return 1360  # Children 4-6 years
+    elif 7 <= age <= 9:
+        return 1700  # Children 7-9 years
+    elif 10 <= age <= 12:
+        if sex == "Male":
+            return 2220  # Boys 10-12 years
+        elif sex == "Female":
+            return 2060  # Girls 10-12 years
+    elif 13 <= age <= 15:
+        if sex == "Male":
+            return 2860  # Boys 13-15 years
+        elif sex == "Female":
+            return 2400  # Girls 13-15 years
+    elif 16 <= age <= 18:
+        if sex == "Male":
+            return 3320  # Boys 16-18 years
+        elif sex == "Female":
+            return 2500  # Girls 16-18 years
+    else:  
+        bmr = (10 * weight) + (6.25 * height) - (5 * age)
+        if sex == "Male":
+            bmr += 5
+        elif sex == "Female":
+            bmr -= 161
+        multiplier = activity_level_map[activity_level]
+        return round(bmr * multiplier)
 
 
 # Layout: Three columns
@@ -26,7 +81,33 @@ left_col, mid_col, right_col = st.columns([3, 3, 2])
 # Left column
 with left_col:
     # st.header("Buffet")
+
+    with st.expander("Profile"):
+
+        col_1, col_2, col_3 = st.columns([1, 1, 1])
+
+        with col_1:
+            age = st.number_input("Age", min_value=1, max_value=100, value=18)
+            st.session_state.age = age
+            weight = st.number_input("Weight (kg)", min_value=30, max_value=200, value=70)
+            st.session_state.weight = weight
+        with col_2:
+            sex = st.selectbox("Sex", ["Male", "Female"])
+            st.session_state.sex = sex
+            activity_level = st.selectbox("Activity Level", ["Sedentary", "Lightly Active", "Moderately Active", "Very Active", "Extra Active"], index=2)
+            st.session_state.activity_level = activity_level
+        with col_3:
+            height = st.number_input("Height (cm)", min_value=100, max_value=300, value=170)
+            st.session_state.height = height
+            bmr = calculate_bmr(st.session_state.age, st.session_state.sex, st.session_state.height, st.session_state.weight, st.session_state.activity_level)                
+            st.text_input("RDA (kcal)", value=bmr, disabled=True)
+            st.session_state.rda = bmr
+            
+        
+    
+
     with st.expander("Full Menu", expanded=st.session_state.stance == 'standing'):
+        st.write("Reference: https://www.ijfcm.org/html-article/18750")
         st.write(st.session_state.calorie_table)
     
     if st.session_state.stance == 'collecting':
@@ -105,36 +186,41 @@ with right_col:
     # st.header("Calorie Meter")
     
     # Example daily calorie limit
-    max_calories = 4000  
+    rda = st.session_state.rda
+    max_calories = rda + 1000  
     current_calories = st.session_state.total_calories  # Assuming total_calories is set elsewhere
 
     # Create the background color shapes for reference ranges based on the new color thresholds
     shapes = [
         # Red range: Below 1800 kcal
-        dict(type="rect", x0=0, x1=1, y0=0, y1=1800, fillcolor="red", opacity=0.2, line_width=0),
+        dict(type="rect", x0=0, x1=1, y0=0, y1=rda-500, fillcolor="red", opacity=0.2, line_width=0),
         
         # Orange range: 1800 to 2200 kcal
-        dict(type="rect", x0=0, x1=1, y0=1800, y1=2200, fillcolor="orange", opacity=0.2, line_width=0),
+        dict(type="rect", x0=0, x1=1, y0=rda-500, y1=rda-250, fillcolor="orange", opacity=0.2, line_width=0),
         
         # Green range: 2200 to 2800 kcal
-        dict(type="rect", x0=0, x1=1, y0=2200, y1=2800, fillcolor="green", opacity=0.2, line_width=0),
+        dict(type="rect", x0=0, x1=1, y0=rda-250, y1=rda+250, fillcolor="green", opacity=0.2, line_width=0),
         
         # Orange range: 2800 to 3200 kcal
-        dict(type="rect", x0=0, x1=1, y0=2800, y1=3200, fillcolor="orange", opacity=0.2, line_width=0),
+        dict(type="rect", x0=0, x1=1, y0=rda+250, y1=rda+500, fillcolor="orange", opacity=0.2, line_width=0),
         
         # Red range: Above 3200 kcal
-        dict(type="rect", x0=0, x1=1, y0=3200, y1=max_calories, fillcolor="red", opacity=0.2, line_width=0)
+        dict(type="rect", x0=0, x1=1, y0=rda+500, y1=max_calories, fillcolor="red", opacity=0.2, line_width=0)
+
     ]
+
+    # Add a white line at y=rda
+    shapes.append(dict(type="line", x0=0, x1=1, y0=rda, y1=rda, line=dict(color="yellow", width=2)))
 
     # Data for the vertical bar
     data = go.Bar(
         x=[0.5],  # Position the bar at the center
         y=[current_calories], 
         marker=dict(
-            color='red' if current_calories < 1800 else 
-                'orange' if current_calories < 2200 else 
-                'green' if current_calories < 2800 else 
-                'orange' if current_calories < 3200 else 
+            color='red' if current_calories < rda-500 else 
+                'orange' if current_calories < rda-250 else 
+                'green' if current_calories < rda+250 else 
+                'orange' if current_calories < rda+500 else 
                 'red',  # Dynamic coloring based on the calories
             line=dict(color='white', width=2)  # Black outline around the bar
         ),
