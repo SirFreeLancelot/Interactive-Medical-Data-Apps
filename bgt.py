@@ -7,7 +7,7 @@ st.set_page_config(layout="wide")
 # Input fields for date, time, and blood glucose level in the sidebar
 with st.sidebar:
     # Title of the app
-    st.title("Blood Glucose Level Tracker")
+    st.title("Blood Glucose Tracker")
     date = st.date_input("Select Date", max_value=pd.to_datetime('today').date())
     time = st.time_input("Select Time")
     glucose = st.number_input("Enter Blood Glucose Level", min_value=0, max_value=500)
@@ -46,7 +46,7 @@ with st.sidebar:
             st.session_state.data = pd.DataFrame(columns=['DateTime', 'Glucose Level'])
         
     # Option to display the DataFrame
-    with st.expander("Data Table"):
+    with st.expander("Data Table", expanded=st.session_state.data.empty==False):
         st.write(st.session_state.data)
 
 # Plot the data if available
