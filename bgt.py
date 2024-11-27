@@ -20,7 +20,7 @@ with st.sidebar:
     col1, col2, col3 = st.columns(3)
     with col1:
         # Add data to the session state DataFrame
-        if st.button(':green[Submit]', type='secondary'):
+        if st.button(':green[Submit]', type='secondary', use_container_width=True):
             # Combine date and time
             datetime = pd.to_datetime(f"{date} {time}")
             # Check if the data already exists
@@ -36,13 +36,13 @@ with st.sidebar:
 
     with col2:
         # Button to delete the data for the selected date and time
-        if st.button(':red[Delete]', type='secondary'):
+        if st.button(':red[Delete]', type='secondary', use_container_width=True):
             datetime = pd.to_datetime(f"{date} {time}")
             st.session_state.data = st.session_state.data[st.session_state.data['DateTime'] != datetime]
 
     with col3:
         # Button to clear all data
-        if st.button(':red[Clear]', type='secondary'):
+        if st.button(':red[Clear]', type='secondary', use_container_width=True):
             st.session_state.data = pd.DataFrame(columns=['DateTime', 'Glucose Level'])
         
     # Option to display the DataFrame

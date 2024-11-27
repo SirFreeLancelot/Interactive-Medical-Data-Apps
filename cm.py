@@ -92,11 +92,11 @@ with left_col:
 
         add_button, remove_button, clear = st.columns(3)
         with add_button:
-            add = st.button(":green[Add to tray]")
+            add = st.button(":green[Add to tray]", use_container_width=True)
         with remove_button:
-            remove = st.button(":red[Put back]")
+            remove = st.button(":red[Put back]", use_container_width=True)
         with clear:
-            clear_tray = st.button(":red[Clear Tray]")
+            clear_tray = st.button(":red[Clear Tray]", use_container_width=True)
         
         if clear_tray: 
             st.session_state.tray = pd.DataFrame(columns=['Food', 'Servings', 'Calories'])
@@ -154,7 +154,7 @@ with mid_col:
     
     if st.session_state.stance == 'standing':
         st.image("garfield.jpg", use_column_width=True)
-        collect = st.button(":green[The food looks delicious! Grab a tray and start making a meal!]")
+        collect = st.button(":green[The food looks delicious! Grab a tray and start making a meal!]", use_container_width=True)
         if collect:
             st.session_state.stance = 'collecting'
             st.rerun()
@@ -162,7 +162,7 @@ with mid_col:
     if st.session_state.stance == 'collecting':
         st.image("garfield-buffet.gif", use_column_width=True)
         if not st.session_state.tray.empty:
-            eat = st.button(":green[That should do for now. Sit down and enjoy the meal!]")
+            eat = st.button(":green[That should do for now. Sit down and enjoy the meal!]", use_container_width=True)
             if eat:
                 st.session_state.stance = 'eating'
                 st.rerun()
@@ -270,7 +270,7 @@ with right_col:
     with col3:
         st.write(f"Total Calories: {int(current_calories)} kcal")
     with col4:
-        reset = st.button(":red[Reset]")
+        reset = st.button(":red[Reset]", use_container_width=True)
         if reset:
             st.session_state.total_calories = 0
             st.session_state.eaten_meals = pd.DataFrame(columns=['Food', 'Servings', 'Calories'])
